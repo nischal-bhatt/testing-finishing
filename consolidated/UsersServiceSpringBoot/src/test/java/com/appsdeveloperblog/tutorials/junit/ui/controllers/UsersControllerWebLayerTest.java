@@ -86,7 +86,7 @@ public class UsersControllerWebLayerTest {
 
         UserDetailsRequestModel userDetailsRequestModel
                 = new UserDetailsRequestModel();
-        userDetailsRequestModel.setFirstName("");
+        userDetailsRequestModel.setFirstName("a");
         userDetailsRequestModel.setLastName("Nish");
         userDetailsRequestModel.setEmail("email@email.com");
         userDetailsRequestModel.setPassword("12345678");
