@@ -1,11 +1,10 @@
 package com.appsdeveloperblog.tutorials.junit.ui.controllers;
 
+import com.appsdeveloperblog.tutorials.junit.security.SecurityConstants;
 import com.appsdeveloperblog.tutorials.junit.ui.response.UserRest;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -22,6 +21,7 @@ import java.util.List;
 @SpringBootTest
         (webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT /*properties="server.port=8099"*/)
 @TestPropertySource(locations = "/application-test.properties")
+@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class UsersControllerIntegrationTest {
 
     @Value("${server.port}")
@@ -41,12 +41,13 @@ public class UsersControllerIntegrationTest {
 
     @Test
     @DisplayName("if user can be created")
+    @Order(1)
     void AAA() throws JSONException {
         //arrange
         JSONObject userDetails = new JSONObject();
         userDetails.put("firstName","ser");
         userDetails.put("lastName","hie");
-        userDetails.put("email","t@t.com");
+        userDetails.put("email","test3@test.com");
         userDetails.put("password","12345678");
         userDetails.put("repeatPassword","12345678");
 
@@ -74,6 +75,7 @@ public class UsersControllerIntegrationTest {
 
     @Test
     @DisplayName("GET /users requires jwt")
+    @Order(2)
     void BBBB()
     {
         HttpHeaders headers = new HttpHeaders();
@@ -86,6 +88,27 @@ public class UsersControllerIntegrationTest {
                 });
 
         Assertions.assertEquals(HttpStatus.FORBIDDEN,res.getStatusCode());
+
+    }
+
+    @Test
+    @DisplayName("/loginworks")
+    @Order(3)
+    void CCCC() throws JSONException {
+        JSONObject loginCreds = new JSONObject();
+        loginCreds.put("email","test3@test.com");
+        loginCreds.put("password","12345678");
+
+        HttpEntity<String> request
+                = new HttpEntity<>(loginCreds.toString());
+
+        ResponseEntity res
+        =testRestTemplate.postForEntity("/users/login",request,null);
+
+
+        Assertions.assertEquals(HttpStatus.OK,res.getStatusCode());
+        Assertions.assertNotNull(res.getHeaders().getValuesAsList(SecurityConstants.HEADER_STRING).get(0));
+
 
     }
 }
