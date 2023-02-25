@@ -11,10 +11,12 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.test.web.server.LocalServerPort;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.*;
 import org.springframework.test.context.TestPropertySource;
 
 import java.util.Arrays;
+import java.util.List;
 
 
 @SpringBootTest
@@ -68,5 +70,22 @@ public class UsersControllerIntegrationTest {
 
         //assert
         Assertions.assertEquals(HttpStatus.OK, createdobj.getStatusCode());
+    }
+
+    @Test
+    @DisplayName("GET /users requires jwt")
+    void BBBB()
+    {
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Accept","application/json");
+
+        HttpEntity re = new HttpEntity(null,headers);
+
+        ResponseEntity<List<UserRest>> res = testRestTemplate.exchange("/users", HttpMethod.GET, re,
+                new ParameterizedTypeReference<List<UserRest>>() {
+                });
+
+        Assertions.assertEquals(HttpStatus.FORBIDDEN,res.getStatusCode());
+
     }
 }
