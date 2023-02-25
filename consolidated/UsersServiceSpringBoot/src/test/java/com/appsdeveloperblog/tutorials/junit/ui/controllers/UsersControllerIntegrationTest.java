@@ -17,11 +17,14 @@ import org.springframework.test.context.TestPropertySource;
 import java.util.Arrays;
 import java.util.List;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 
 @SpringBootTest
         (webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT /*properties="server.port=8099"*/)
 @TestPropertySource(locations = "/application-test.properties")
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class UsersControllerIntegrationTest {
 
     @Value("${server.port}")
@@ -29,6 +32,8 @@ public class UsersControllerIntegrationTest {
 
     @Autowired
     private TestRestTemplate testRestTemplate;
+
+    private String authorizationToken;
 
     @LocalServerPort
     private int localServerPort;
@@ -70,7 +75,7 @@ public class UsersControllerIntegrationTest {
 
 
         //assert
-        Assertions.assertEquals(HttpStatus.OK, createdobj.getStatusCode());
+        assertEquals(HttpStatus.OK, createdobj.getStatusCode());
     }
 
     @Test
@@ -87,7 +92,7 @@ public class UsersControllerIntegrationTest {
                 new ParameterizedTypeReference<List<UserRest>>() {
                 });
 
-        Assertions.assertEquals(HttpStatus.FORBIDDEN,res.getStatusCode());
+        assertEquals(HttpStatus.FORBIDDEN,res.getStatusCode());
 
     }
 
@@ -105,10 +110,34 @@ public class UsersControllerIntegrationTest {
         ResponseEntity res
         =testRestTemplate.postForEntity("/users/login",request,null);
 
+        authorizationToken = res.getHeaders().getValuesAsList(SecurityConstants.HEADER_STRING).get(0);
 
-        Assertions.assertEquals(HttpStatus.OK,res.getStatusCode());
+
+        assertEquals(HttpStatus.OK,res.getStatusCode());
         Assertions.assertNotNull(res.getHeaders().getValuesAsList(SecurityConstants.HEADER_STRING).get(0));
 
+
+    }
+
+    @Test
+    @Order(4)
+    @DisplayName(" GET / users works")
+    void ccccccc()
+    {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setAccept(Arrays.asList(MediaType.APPLICATION_JSON));
+        headers.setBearerAuth(authorizationToken);
+
+        HttpEntity reque = new HttpEntity(headers);
+
+        ResponseEntity<List<UserRest>> re =testRestTemplate.exchange("/users",
+                HttpMethod.GET,
+                reque,
+                new ParameterizedTypeReference<List<UserRest>>(){
+
+                });
+
+        assertEquals(HttpStatus.OK,re.getStatusCode());
 
     }
 }
